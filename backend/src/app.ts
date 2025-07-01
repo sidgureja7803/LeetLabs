@@ -16,6 +16,7 @@ import quizRoutes from './routes/quiz.routes';
 import notificationRoutes from './routes/notification.routes';
 import announcementRoutes from './routes/announcement.routes';
 import chatbotRoutes from './routes/chatbot.routes';
+import { CronService } from './services/cron.service';
 
 const app = express();
 
@@ -72,6 +73,10 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 
+// Initialize cron jobs
+CronService.initializeJobs();
+logger.info('Cron jobs initialized');
+
 // Handle 404
 app.use('*', (req, res) => {
   res.status(404).json({
@@ -82,5 +87,18 @@ app.use('*', (req, res) => {
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM signal received. Shutting down gracefully...');
+  CronService.stopJobs();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('SIGINT signal received. Shutting down gracefully...');
+  CronService.stopJobs();
+  process.exit(0);
+});
 
 export default app; 
