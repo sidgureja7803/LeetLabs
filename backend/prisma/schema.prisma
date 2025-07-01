@@ -1,0 +1,158 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum AssignmentStatus {
+  PENDING
+  SUBMITTED
+  GRADED
+}
+
+model Department {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String   @unique // e.g., "CSE", "ECE", "ME"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subjects Subject[]
+  users    User[]
+
+  @@map("departments")
+}
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  password     String
+  firstName    String
+  lastName     String
+  rollNumber   String? @unique // For students
+  employeeId   String? @unique // For teachers and admin
+  role         Role    @default(STUDENT)
+  isActive     Boolean @default(true)
+  profileImage String?
+
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teacherSubjects  TeacherSubject[]
+  submissions      Submission[]
+  createdAssignments Assignment[] @relation("CreatedByTeacher")
+
+  @@map("users")
+}
+
+model Subject {
+  id          String @id @default(cuid())
+  name        String
+  code        String @unique // e.g., "CS101", "ECE201"
+  description String?
+  semester    Int
+  credits     Int
+
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  teacherSubjects TeacherSubject[]
+  assignments     Assignment[]
+
+  @@map("subjects")
+}
+
+model TeacherSubject {
+  id        String @id @default(cuid())
+  teacherId String
+  subjectId String
+  semester  String // e.g., "Fall2024", "Spring2025"
+  isActive  Boolean @default(true)
+
+  teacher User    @relation(fields: [teacherId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([teacherId, subjectId, semester])
+  @@map("teacher_subjects")
+}
+
+model Assignment {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  dueDate     DateTime
+  maxMarks    Int       @default(100)
+  fileUrl     String?   // URL to assignment file (PDF/PPT)
+  fileName    String?
+  isActive    Boolean   @default(true)
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+
+  createdById String
+  createdBy   User   @relation("CreatedByTeacher", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  submissions Submission[]
+
+  @@map("assignments")
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  fileUrl     String           // URL to submitted file
+  fileName    String
+  status      AssignmentStatus @default(PENDING)
+  marks       Int?
+  feedback    String?
+  submittedAt DateTime         @default(now())
+
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id])
+
+  updatedAt DateTime @updatedAt
+
+  @@unique([assignmentId, studentId])
+  @@map("submissions")
+}
+
+model SystemConfig {
+  id            String @id @default(cuid())
+  key           String @unique
+  value         String
+  description   String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_config")
+} 

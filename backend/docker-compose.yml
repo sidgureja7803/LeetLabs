@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: thapar-labs-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: thapar_user
+      POSTGRES_PASSWORD: thapar_password
+      POSTGRES_DB: thapar_virtual_labs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - thapar-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: thapar-labs-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - thapar-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: thapar-labs-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://thapar_user:thapar_password@postgres:5432/thapar_virtual_labs?schema=public
+      - JWT_SECRET=your-super-secret-jwt-key-for-development
+      - FRONTEND_URL=http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - thapar-network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  thapar-network:
+    driver: bridge 
