@@ -5,6 +5,11 @@ import { useRouter } from 'next/navigation';
 import { authAPI } from './api';
 import { User, UserRole } from './types';
 import { toast } from '@/components/ui/use-toast';
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "@/lib/prisma";
+import { compare } from "bcryptjs";
 
 interface AuthContextType {
   user: User | null;
@@ -215,4 +220,83 @@ export const canAccessTeacherRoutes = (user: User | null): boolean => {
 
 export const canAccessStudentRoutes = (user: User | null): boolean => {
   return user?.role === 'STUDENT' || user?.role === 'TEACHER' || user?.role === 'ADMIN';
+};
+
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+  },
+  providers: [
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Invalid credentials");
+        }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            email: credentials.email,
+          },
+          select: {
+            id: true,
+            email: true,
+            password: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            departmentId: true,
+          },
+        });
+
+        if (!user) {
+          throw new Error("Invalid credentials");
+        }
+
+        const isValid = await compare(credentials.password, user.password);
+
+        if (!isValid) {
+          throw new Error("Invalid credentials");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`,
+          role: user.role,
+          departmentId: user.departmentId,
+        };
+      },
+    }),
+  ],
+  callbacks: {
+    async session({ token, session }) {
+      if (token) {
+        session.user.id = token.id;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.role = token.role;
+        session.user.departmentId = token.departmentId;
+      }
+
+      return session;
+    },
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.departmentId = user.departmentId;
+      }
+
+      return token;
+    },
+  },
 }; 
