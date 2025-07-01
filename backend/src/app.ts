@@ -12,6 +12,10 @@ import authRoutes from './routes/auth.routes';
 import adminRoutes from './routes/admin.routes';
 import teacherRoutes from './routes/teacher.routes';
 import studentRoutes from './routes/student.routes';
+import quizRoutes from './routes/quiz.routes';
+import notificationRoutes from './routes/notification.routes';
+import announcementRoutes from './routes/announcement.routes';
+import chatbotRoutes from './routes/chatbot.routes';
 
 const app = express();
 
@@ -63,6 +67,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/teacher', teacherRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/quizzes', quizRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/announcements', announcementRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // Handle 404
 app.use('*', (req, res) => {

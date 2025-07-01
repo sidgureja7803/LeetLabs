@@ -1,307 +1,418 @@
-# Thapar Virtual Labs Platform
+# Thapar Virtual Labs
 
-A comprehensive full-stack virtual laboratory platform built for Thapar Institute of Engineering and Technology. This platform supports role-based access for Students, Teachers, and Administrators with features including assignment management, file submissions, and automated grading.
+A comprehensive, production-ready virtual laboratory platform for **Thapar Institute of Engineering and Technology**, built with modern web technologies and AI integration.
 
-## 🌟 Features
+## 🌟 Overview
 
-### 🎓 For Students
-- View and submit assignments
-- Upload code files and documents
-- Track submission status and grades
-- Access subject materials
-- Real-time progress tracking
+Thapar Virtual Labs is a full-stack educational platform that provides:
+- **Role-based dashboards** for Admins, Teachers, and Students
+- **Advanced quiz management** with scheduling and auto-grading
+- **Assignment creation and submission** with file upload
+- **Real-time notifications** and announcements
+- **AI-powered chatbot** with Llama integration
+- **Email verification** and secure authentication
+- **Comprehensive grade tracking** and analytics
+- **Mobile-responsive design** with modern UI
 
-### 👨‍🏫 For Teachers
-- Create and manage assignments
-- Upload assignment files (PDFs, PPTs)
-- Review and grade student submissions
-- Manage assigned subjects
-- Email notifications for submissions
-
-### 👨‍💼 For Administrators
-- Manage users (Students, Teachers)
-- Assign teachers to subjects
-- System analytics and reporting
-- Semester data management
-- Department and subject management
-
-## 🏗️ Tech Stack
+## 🚀 Tech Stack
 
 ### Frontend
-- **Framework**: Next.js 14 with TypeScript
-- **Styling**: Tailwind CSS + Shadcn/ui components
-- **Authentication**: JWT with HTTP-only cookies
-- **State Management**: React Context API
-- **File Upload**: React Dropzone
-- **Animations**: Framer Motion
-- **HTTP Client**: Axios
+- **Next.js 14** with App Router
+- **TypeScript** for type safety
+- **Tailwind CSS** for styling
+- **Shadcn/ui** for components
+- **Axios** for API communication
+- **React Hooks** for state management
 
 ### Backend
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Express.js
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: JWT + bcrypt
-- **File Storage**: AWS S3
-- **Email**: Nodemailer
-- **Security**: Helmet, CORS, Rate limiting
-- **Logging**: Winston
+- **Node.js** with **Express.js**
+- **TypeScript** for type safety
+- **Prisma ORM** with **PostgreSQL**
+- **JWT Authentication** with HTTP-only cookies
+- **AWS S3** for file storage
+- **Nodemailer** for emails
+- **bcrypt** for password hashing
+- **Rate limiting** and security middleware
 
 ### Infrastructure
-- **Containerization**: Docker + Docker Compose
-- **Database**: PostgreSQL
-- **Cache**: Redis
-- **Cloud Storage**: AWS S3
-- **Deployment**: AWS EC2 + RDS / Vercel
+- **Docker** for containerization
+- **AWS EC2** for backend hosting
+- **AWS RDS** for PostgreSQL database
+- **AWS S3** for file storage
+- **Vercel/AWS CloudFront** for frontend
 
-## 🚀 Quick Start
+## ✨ Key Features
+
+### 🔐 Authentication & Security
+- ✅ Email verification for new accounts
+- ✅ Password reset functionality
+- ✅ JWT-based authentication
+- ✅ Role-based access control
+- ✅ Rate limiting and CORS protection
+- ✅ Account lockout for security
+
+### 👨‍🏫 Teacher Features
+- ✅ **Quiz Management**: Create, schedule, and auto-grade quizzes
+- ✅ **Assignment System**: Create assignments with deadlines
+- ✅ **Grading Tools**: Grade submissions with feedback
+- ✅ **Class Management**: Monitor student progress
+- ✅ **Announcements**: Send notifications to students
+- ✅ **File Upload**: Support for attachments and rubrics
+
+### 👨‍🎓 Student Features
+- ✅ **Quiz Taking**: Timed quizzes with multiple question types
+- ✅ **Assignment Submission**: Upload files and text submissions
+- ✅ **Grade Tracking**: View grades and performance analytics
+- ✅ **Calendar View**: Track assignment deadlines
+- ✅ **Notifications**: Real-time updates on new content
+- ✅ **Progress Monitoring**: Track academic performance
+
+### 👨‍💼 Admin Features
+- ✅ **User Management**: Create and manage users
+- ✅ **System Analytics**: Platform usage statistics
+- ✅ **Semester Management**: Configure academic terms
+- ✅ **Department Management**: Organize by departments
+- ✅ **Audit Logs**: Track system activities
+- ✅ **Bulk Operations**: Efficient user management
+
+### 🤖 AI Features
+- ✅ **Chatbot Integration**: Llama-powered assistant
+- ✅ **Contextual Help**: Subject-specific assistance
+- ✅ **Code Help**: Programming support and debugging
+- ✅ **24/7 Availability**: Always available support
+
+## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Node.js 18+ 
-- PostgreSQL 15+
-- AWS Account (for S3 and deployment)
-- Docker (optional, for containerized development)
+- **Node.js 18+**
+- **PostgreSQL 14+**
+- **AWS Account** (for S3 and deployment)
+- **Llama API Key** (for chatbot)
 
-### 1. Clone the Repository
+### 1. Clone Repository
 ```bash
 git clone <repository-url>
-cd Capstone
+cd thapar-virtual-labs
 ```
 
 ### 2. Backend Setup
-
-#### Install Dependencies
 ```bash
 cd backend
-npm install
-```
 
-#### Environment Configuration
-Copy the `.env` file and update with your credentials:
-```bash
+# Install dependencies
+npm install
+
+# Setup environment variables
 cp .env.example .env
 ```
 
-Update the following variables:
+#### Backend Environment Variables (.env)
 ```env
 # Database
-DATABASE_URL="postgresql://username:password@localhost:5432/thapar_virtual_labs"
+DATABASE_URL="postgresql://username:password@localhost:5432/thapar_labs"
 
 # JWT
-JWT_SECRET="your-super-secret-jwt-key"
+JWT_SECRET="your-super-secret-jwt-key-min-32-chars"
+JWT_EXPIRES_IN="7d"
 
-# AWS S3
+# Frontend URL
+FRONTEND_URL="http://localhost:3000"
+
+# Email Configuration (Gmail example)
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+EMAIL_USER="your-email@gmail.com"
+EMAIL_PASS="your-app-password"
+EMAIL_FROM="Thapar Virtual Labs <your-email@gmail.com>"
+
+# AWS S3 Configuration
 AWS_ACCESS_KEY_ID="your-aws-access-key"
 AWS_SECRET_ACCESS_KEY="your-aws-secret-key"
-AWS_S3_BUCKET="your-s3-bucket-name"
+AWS_REGION="us-west-2"
+AWS_S3_BUCKET="thapar-labs-files"
 
-# Email (SMTP)
-SMTP_HOST="smtp.gmail.com"
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
+# Llama API
+LLAMA_API_URL="https://api.llama-api.com/chat/completions"
+LLAMA_API_KEY="your-llama-api-key"
+
+# Security
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Node Environment
+NODE_ENV="development"
+PORT=5000
 ```
 
 #### Database Setup
 ```bash
 # Generate Prisma client
-npm run db:generate
+npx prisma generate
 
 # Run database migrations
-npm run db:migrate
+npx prisma db push
 
-# Seed the database with sample data
-npm run db:seed
+# Seed database with sample data
+npx prisma db seed
 ```
 
-#### Start Backend Server
+#### Start Backend
 ```bash
 npm run dev
 ```
-Backend will be available at `http://localhost:8000`
 
 ### 3. Frontend Setup
-
-#### Install Dependencies
 ```bash
 cd frontend
+
+# Install dependencies
 npm install
+
+# Setup environment variables
+cp .env.example .env.local
 ```
 
-#### Environment Configuration
-Create `.env.local`:
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8000/api
+#### Frontend Environment Variables (.env.local)
+```env
+NEXT_PUBLIC_API_URL="http://localhost:5000/api"
+NEXT_PUBLIC_FRONTEND_URL="http://localhost:3000"
 ```
 
-#### Start Frontend Server
+#### Start Frontend
 ```bash
 npm run dev
 ```
-Frontend will be available at `http://localhost:3000`
 
-### 4. Docker Setup (Alternative)
+### 4. Access Application
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/health
 
-Run the entire stack with Docker:
+## 🧪 Demo Credentials
+
+The platform comes with pre-seeded demo accounts:
+
+### Admin Account
+- **Email**: admin@thapar.edu
+- **Password**: admin123
+- **Role**: Administrator
+
+### Teacher Account
+- **Email**: teacher@thapar.edu
+- **Password**: teacher123
+- **Role**: Teacher
+
+### Student Account
+- **Email**: student@thapar.edu
+- **Password**: student123
+- **Role**: Student
+
+## 🐳 Docker Deployment
+
+### Using Docker Compose
 ```bash
-cd backend
+# Build and start all services
 docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
 ```
 
-This will start:
-- PostgreSQL database on port 5432
-- Redis on port 6379  
-- Backend API on port 8000
+### Manual Docker Build
+```bash
+# Backend
+cd backend
+docker build -t thapar-labs-backend .
 
-## 🔐 Default Login Credentials
-
-After running the seed script, you can login with:
-
-- **Admin**: `admin@thapar.edu` / `admin123`
-- **Teacher**: `teacher@thapar.edu` / `teacher123`  
-- **Student**: `student@thapar.edu` / `student123`
-
-## 📁 Project Structure
-
-```
-├── backend/
-│   ├── src/
-│   │   ├── config/          # Database, AWS, Email configuration
-│   │   ├── controllers/     # Route handlers
-│   │   ├── routes/          # API routes
-│   │   ├── middlewares/     # Authentication, validation, error handling
-│   │   ├── utils/           # Utility functions (email, S3, logging)
-│   │   ├── jobs/            # Background jobs
-│   │   ├── app.ts           # Express app setup
-│   │   └── server.ts        # Entry point
-│   ├── prisma/
-│   │   ├── schema.prisma    # Database schema
-│   │   └── seed.ts          # Database seeding
-│   ├── Dockerfile
-│   └── docker-compose.yml
-│
-├── frontend/
-│   ├── app/                 # Next.js app directory
-│   │   ├── dashboard/       # Role-based dashboards
-│   │   ├── layout.tsx       # Root layout
-│   │   └── page.tsx         # Landing page
-│   ├── components/          # Reusable UI components
-│   ├── lib/                 # Utilities, API, types, auth
-│   └── styles/              # Global styles
-│
-└── README.md
+# Frontend
+cd frontend
+docker build -t thapar-labs-frontend .
 ```
 
-## 🎨 UI Components
+## ☁️ Production Deployment
 
-The platform uses **Shadcn/ui** components built on top of **Radix UI** primitives. Key components include:
+### AWS Infrastructure Setup
 
-- **Authentication**: Login forms with validation
-- **Dashboards**: Role-specific interfaces
-- **File Upload**: Drag & drop with progress
-- **Data Tables**: Sortable, filterable tables
-- **Forms**: React Hook Form with Zod validation
-- **Notifications**: Toast notifications
-- **Modals**: Confirmation dialogs
-- **Navigation**: Responsive sidebar and navbar
+#### 1. Database (AWS RDS)
+```bash
+# Create PostgreSQL RDS instance
+aws rds create-db-instance \
+  --db-instance-identifier thapar-labs-db \
+  --db-instance-class db.t3.micro \
+  --engine postgres \
+  --master-username admin \
+  --master-user-password yourpassword \
+  --allocated-storage 20
+```
 
-## 🔒 Security Features
+#### 2. File Storage (AWS S3)
+```bash
+# Create S3 bucket
+aws s3 mb s3://thapar-labs-files
 
-- **Authentication**: JWT tokens in HTTP-only cookies
-- **Authorization**: Role-based access control (RBAC)
-- **Rate Limiting**: API endpoint protection
-- **CORS**: Cross-origin request security
-- **Helmet**: Security headers
-- **Input Validation**: Zod schema validation
-- **File Upload**: Type and size restrictions
-- **SQL Injection**: Prisma ORM protection
+# Configure CORS policy
+aws s3api put-bucket-cors \
+  --bucket thapar-labs-files \
+  --cors-configuration file://cors.json
+```
 
-## 📊 Database Schema
+#### 3. Backend (AWS EC2)
+```bash
+# Launch EC2 instance
+# Install Docker and Docker Compose
+# Deploy backend container
+# Configure nginx reverse proxy
+# Setup SSL certificate with Let's Encrypt
+```
 
-### Core Models
-- **User**: Students, Teachers, Admins with role-based access
-- **Department**: Engineering departments (CSE, ECE, ME, etc.)
-- **Subject**: Courses with semester and credit information
-- **TeacherSubject**: Teacher-subject assignments per semester
-- **Assignment**: Assignment details with file attachments
-- **Submission**: Student submissions with grading
-- **SystemConfig**: Application configuration
+#### 4. Frontend (Vercel)
+```bash
+# Install Vercel CLI
+npm i -g vercel
 
-### Key Relationships
-- Users belong to Departments
-- Teachers are assigned to Subjects per semester
-- Assignments belong to Subjects and are created by Teachers
-- Students submit files for Assignments
-- Submissions can be graded by Teachers
+# Deploy frontend
+cd frontend
+vercel --prod
+```
 
-## 🚀 Deployment
+### Environment Variables for Production
+Update all environment variables with production values:
+- Database connection strings
+- AWS credentials and regions
+- Email service configuration
+- Llama API keys
+- Frontend/backend URLs
 
-### Backend Deployment (AWS EC2)
-1. Create EC2 instance with Ubuntu/Amazon Linux
-2. Install Node.js, Docker, and PostgreSQL
-3. Set up RDS PostgreSQL instance
-4. Configure S3 bucket for file storage
-5. Set up environment variables
-6. Deploy using Docker or PM2
+## 📚 API Documentation
 
-### Frontend Deployment (Vercel)
-1. Connect GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Configure custom domain (optional)
-4. Deploy automatically on push to main branch
+### Authentication Endpoints
+```
+POST   /api/auth/register           # Register new user
+POST   /api/auth/login              # User login
+POST   /api/auth/logout             # User logout
+POST   /api/auth/verify-email       # Verify email address
+POST   /api/auth/forgot-password    # Request password reset
+POST   /api/auth/reset-password     # Reset password
+GET    /api/auth/me                 # Get current user
+```
 
-### Database (AWS RDS)
-1. Create PostgreSQL RDS instance
-2. Configure security groups for access
-3. Run migrations and seed data
-4. Set up automated backups
+### Quiz Endpoints
+```
+POST   /api/quizzes                 # Create quiz (Teacher/Admin)
+GET    /api/quizzes/teacher         # Get teacher's quizzes
+GET    /api/quizzes/student         # Get student's quizzes
+POST   /api/quizzes/:id/start       # Start quiz attempt
+POST   /api/quizzes/attempts/:id/submit  # Submit quiz
+```
 
-## 🧪 Testing
+### Assignment Endpoints
+```
+POST   /api/assignments             # Create assignment
+GET    /api/assignments             # Get assignments
+POST   /api/assignments/:id/submit  # Submit assignment
+GET    /api/assignments/:id/submissions  # Get submissions
+```
 
+### Notification Endpoints
+```
+GET    /api/notifications           # Get user notifications
+PUT    /api/notifications/:id/read  # Mark as read
+DELETE /api/notifications/:id       # Delete notification
+```
+
+### Chatbot Endpoints
+```
+POST   /api/chatbot/init            # Initialize chat session
+POST   /api/chatbot/message         # Send message
+GET    /api/chatbot/sessions        # Get chat sessions
+```
+
+## 🔧 Development Guidelines
+
+### Code Style
+- Use **TypeScript** for all new code
+- Follow **ESLint** and **Prettier** configurations
+- Use **conventional commits** for git messages
+- Write **unit tests** for critical functions
+
+### Database Migrations
+```bash
+# Create new migration
+npx prisma migrate dev --name migration_name
+
+# Reset database (development only)
+npx prisma migrate reset
+```
+
+### Testing
 ```bash
 # Backend tests
 cd backend
-npm run test
+npm test
 
-# Frontend tests  
+# Frontend tests
 cd frontend
-npm run test
-
-# E2E tests
-npm run test:e2e
+npm test
 ```
 
-## 📈 Performance Optimizations
+## 📊 Features Roadmap
 
-- **Frontend**: Next.js SSR/SSG, code splitting, image optimization
-- **Backend**: Connection pooling, caching with Redis, query optimization
-- **Database**: Proper indexing, query optimization
-- **Files**: CDN for static assets, S3 for file storage
-- **Monitoring**: Winston logging, error tracking
+### Completed ✅
+- [x] User authentication with email verification
+- [x] Role-based dashboards (Admin, Teacher, Student)
+- [x] Quiz creation and management system
+- [x] Assignment creation and submission
+- [x] Real-time notifications
+- [x] AI chatbot integration
+- [x] File upload and management
+- [x] Grade tracking and analytics
+- [x] Email notifications
+- [x] Mobile-responsive design
+
+### In Development 🚧
+- [ ] Judge0 compiler integration for code execution
+- [ ] Advanced analytics dashboard
+- [ ] Video conferencing integration
+- [ ] Plagiarism detection
+- [ ] LMS integration capabilities
+- [ ] Mobile app development
+
+### Future Features 🔮
+- [ ] Blockchain-based certificates
+- [ ] AR/VR lab simulations
+- [ ] Machine learning-powered recommendations
+- [ ] Advanced reporting and insights
+- [ ] Multi-language support
+- [ ] API marketplace for extensions
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
 For support and questions:
 - **Email**: support@thapar.edu
-- **Documentation**: [Link to docs]
-- **Issues**: [GitHub Issues]
+- **Documentation**: [Wiki](wiki-url)
+- **Issues**: [GitHub Issues](issues-url)
 
 ## 🙏 Acknowledgments
 
-- Thapar Institute of Engineering and Technology
-- Open source libraries and frameworks used
-- Contributors and maintainers
+- **Thapar Institute of Engineering and Technology**
+- **Open source community** for amazing tools and libraries
+- **Contributors** who help improve the platform
 
 ---
 
-**Built with ❤️ for Thapar Institute of Engineering and Technology** 
+**Built with ❤️ for education at Thapar Institute of Engineering and Technology** 
