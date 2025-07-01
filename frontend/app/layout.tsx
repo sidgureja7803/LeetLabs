@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -78,6 +79,7 @@ export default function RootLayout({
           <LayoutSelector pathname={typeof window !== 'undefined' ? window.location.pathname : ''}>
             {children}
           </LayoutSelector>
+          <Toaster />
         </AuthProvider>
       </body>
     </html>
