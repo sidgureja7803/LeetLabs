@@ -9,12 +9,9 @@ import { errorHandler } from './middlewares/error.middleware';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
-import userRoutes from './routes/user.routes';
-import subjectRoutes from './routes/subject.routes';
-import assignmentRoutes from './routes/assignment.routes';
-import submissionRoutes from './routes/submission.routes';
-import fileRoutes from './routes/file.routes';
 import adminRoutes from './routes/admin.routes';
+import teacherRoutes from './routes/teacher.routes';
+import studentRoutes from './routes/student.routes';
 
 const app = express();
 
@@ -63,12 +60,9 @@ app.get('/health', (req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/subjects', subjectRoutes);
-app.use('/api/assignments', assignmentRoutes);
-app.use('/api/submissions', submissionRoutes);
-app.use('/api/files', fileRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/teacher', teacherRoutes);
+app.use('/api/student', studentRoutes);
 
 // Handle 404
 app.use('*', (req, res) => {

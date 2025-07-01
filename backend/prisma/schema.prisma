@@ -16,143 +16,431 @@ enum Role {
   STUDENT
 }
 
-enum AssignmentStatus {
+enum AssignmentType {
+  INDIVIDUAL
+  GROUP
+  LAB
+  PROJECT
+  QUIZ
+}
+
+enum SubmissionStatus {
   PENDING
   SUBMITTED
   GRADED
+  LATE
+  MISSING
+}
+
+enum QuizStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+  CODE
+}
+
+enum NotificationType {
+  ASSIGNMENT
+  QUIZ
+  GRADE
+  ANNOUNCEMENT
+  SYSTEM
 }
 
 model Department {
   id        String   @id @default(cuid())
   name      String   @unique
-  code      String   @unique // e.g., "CSE", "ECE", "ME"
+  code      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  subjects Subject[]
   users    User[]
+  subjects Subject[]
 
   @@map("departments")
 }
 
 model User {
-  id           String  @id @default(cuid())
-  email        String  @unique
-  password     String
-  firstName    String
-  lastName     String
-  rollNumber   String? @unique // For students
-  employeeId   String? @unique // For teachers and admin
-  role         Role    @default(STUDENT)
-  isActive     Boolean @default(true)
-  profileImage String?
+  id                         String    @id @default(cuid())
+  email                      String    @unique
+  password                   String
+  firstName                  String
+  lastName                   String
+  role                       Role      @default(STUDENT)
+  rollNumber                 String?   @unique
+  employeeId                 String?   @unique
+  semester                   Int?
+  profileImage               String?
+  isActive                   Boolean   @default(true)
+  isEmailVerified           Boolean   @default(false)
+  emailVerificationToken    String?   @unique
+  emailVerificationExpires  DateTime?
+  passwordResetToken        String?   @unique
+  passwordResetExpires      DateTime?
+  lastLoginAt               DateTime?
+  twoFactorEnabled          Boolean   @default(false)
+  twoFactorSecret           String?
+  loginAttempts             Int       @default(0)
+  lockoutUntil              DateTime?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
 
+  // Relations
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  // Teacher relations
+  subjectsTeaching Subject[] @relation("TeacherSubjects")
+  assignmentsCreated Assignment[] @relation("TeacherAssignments")
+  quizzesCreated Quiz[] @relation("TeacherQuizzes")
+  gradesGiven Grade[] @relation("TeacherGrades")
+  announcementsCreated Announcement[] @relation("TeacherAnnouncements")
 
-  // Relations
-  teacherSubjects  TeacherSubject[]
-  submissions      Submission[]
-  createdAssignments Assignment[] @relation("CreatedByTeacher")
+  // Student relations
+  enrollments Enrollment[]
+  submissions Submission[]
+  quizAttempts QuizAttempt[]
+  grades Grade[] @relation("StudentGrades")
+  notifications Notification[]
+
+  // Admin audit logs
+  auditLogs AuditLog[]
 
   @@map("users")
 }
 
 model Subject {
-  id          String @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
-  code        String @unique // e.g., "CS101", "ECE201"
+  code        String   @unique
   description String?
+  credits     Int      @default(3)
   semester    Int
-  credits     Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
+  // Relations
   departmentId String
   department   Department @relation(fields: [departmentId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  teacherId String?
+  teacher   User?   @relation("TeacherSubjects", fields: [teacherId], references: [id])
 
-  // Relations
-  teacherSubjects TeacherSubject[]
-  assignments     Assignment[]
+  enrollments  Enrollment[]
+  assignments  Assignment[]
+  quizzes      Quiz[]
+  announcements Announcement[]
 
   @@map("subjects")
 }
 
-model TeacherSubject {
-  id        String @id @default(cuid())
-  teacherId String
-  subjectId String
-  semester  String // e.g., "Fall2024", "Spring2025"
-  isActive  Boolean @default(true)
+model Enrollment {
+  id            String   @id @default(cuid())
+  enrollmentDate DateTime @default(now())
+  isActive      Boolean  @default(true)
+  finalGrade    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  teacher User    @relation(fields: [teacherId], references: [id])
-  subject Subject @relation(fields: [subjectId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([teacherId, subjectId, semester])
-  @@map("teacher_subjects")
-}
-
-model Assignment {
-  id          String    @id @default(cuid())
-  title       String
-  description String
-  dueDate     DateTime
-  maxMarks    Int       @default(100)
-  fileUrl     String?   // URL to assignment file (PDF/PPT)
-  fileName    String?
-  isActive    Boolean   @default(true)
-
+  // Relations
+  studentId String
+  student   User    @relation(fields: [studentId], references: [id])
   subjectId String
   subject   Subject @relation(fields: [subjectId], references: [id])
 
-  createdById String
-  createdBy   User   @relation("CreatedByTeacher", fields: [createdById], references: [id])
+  @@unique([studentId, subjectId])
+  @@map("enrollments")
+}
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Assignment {
+  id              String          @id @default(cuid())
+  title           String
+  description     String
+  instructions    String?
+  type            AssignmentType  @default(INDIVIDUAL)
+  maxMarks        Int             @default(100)
+  dueDate         DateTime
+  allowLateSubmission Boolean     @default(false)
+  latePenalty     Int?            // Percentage penalty per day
+  attachments     Json?           // Array of file URLs
+  rubric          Json?           // Grading rubric
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   // Relations
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  teacherId String
+  teacher   User    @relation("TeacherAssignments", fields: [teacherId], references: [id])
+
   submissions Submission[]
+  grades      Grade[]
 
   @@map("assignments")
 }
 
 model Submission {
-  id          String           @id @default(cuid())
-  fileUrl     String           // URL to submitted file
-  fileName    String
-  status      AssignmentStatus @default(PENDING)
-  marks       Int?
-  feedback    String?
-  submittedAt DateTime         @default(now())
+  id               String           @id @default(cuid())
+  content          String?
+  attachments      Json?            // Array of file URLs
+  status           SubmissionStatus @default(PENDING)
+  submittedAt      DateTime?
+  isLate           Boolean          @default(false)
+  version          Int              @default(1)
+  plagiarismScore  Float?
+  compilationStatus String?         // For code submissions
+  testResults      Json?            // For automated testing
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
+  // Relations
   assignmentId String
   assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  studentId    String
+  student      User       @relation(fields: [studentId], references: [id])
 
-  studentId String
-  student   User   @relation(fields: [studentId], references: [id])
+  grades Grade[]
 
-  updatedAt DateTime @updatedAt
-
-  @@unique([assignmentId, studentId])
+  @@unique([assignmentId, studentId, version])
   @@map("submissions")
 }
 
+model Quiz {
+  id               String     @id @default(cuid())
+  title            String
+  description      String?
+  instructions     String?
+  duration         Int        // Duration in minutes
+  totalMarks       Int        @default(0)
+  passingMarks     Int?
+  maxAttempts      Int        @default(1)
+  shuffleQuestions Boolean    @default(false)
+  shuffleOptions   Boolean    @default(false)
+  showResults      Boolean    @default(true)
+  allowReview      Boolean    @default(true)
+  status           QuizStatus @default(DRAFT)
+  scheduledAt      DateTime?
+  startTime        DateTime?
+  endTime          DateTime?
+  timeLimit        Boolean    @default(true)
+  isActive         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  // Relations
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id])
+  teacherId String
+  teacher   User    @relation("TeacherQuizzes", fields: [teacherId], references: [id])
+
+  questions    QuizQuestion[]
+  attempts     QuizAttempt[]
+  grades       Grade[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String       @id @default(cuid())
+  question      String
+  type          QuestionType
+  options       Json?        // For multiple choice questions
+  correctAnswer String       // Correct answer or answers
+  marks         Int          @default(1)
+  explanation   String?
+  codeTemplate  String?      // For code questions
+  testCases     Json?        // For code questions
+  order         Int
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  answers QuizAnswer[]
+
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id            String    @id @default(cuid())
+  attemptNumber Int       @default(1)
+  startedAt     DateTime  @default(now())
+  submittedAt   DateTime?
+  timeSpent     Int?      // Time spent in minutes
+  score         Int?      // Calculated score
+  isPassed      Boolean?
+  isCompleted   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  quizId    String
+  quiz      Quiz   @relation(fields: [quizId], references: [id])
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id])
+
+  answers QuizAnswer[]
+  grade   Grade?
+
+  @@unique([quizId, studentId, attemptNumber])
+  @@map("quiz_attempts")
+}
+
+model QuizAnswer {
+  id        String   @id @default(cuid())
+  answer    String
+  isCorrect Boolean?
+  marks     Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  questionId String
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attemptId  String
+  attempt    QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, attemptId])
+  @@map("quiz_answers")
+}
+
+model Grade {
+  id        String   @id @default(cuid())
+  marks     Int
+  maxMarks  Int
+  percentage Float   @default(0)
+  grade     String? // Letter grade (A, B, C, etc.)
+  feedback  String?
+  rubricScores Json? // Detailed rubric scoring
+  isPublished Boolean @default(false)
+  gradedAt  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  studentId String
+  student   User   @relation("StudentGrades", fields: [studentId], references: [id])
+  teacherId String
+  teacher   User   @relation("TeacherGrades", fields: [teacherId], references: [id])
+
+  // Either assignment, quiz, or quiz attempt
+  assignmentId   String?
+  assignment     Assignment?  @relation(fields: [assignmentId], references: [id])
+  submissionId   String?
+  submission     Submission?  @relation(fields: [submissionId], references: [id])
+  quizId         String?
+  quiz           Quiz?        @relation(fields: [quizId], references: [id])
+  quizAttemptId  String?      @unique
+  quizAttempt    QuizAttempt? @relation(fields: [quizAttemptId], references: [id])
+
+  @@map("grades")
+}
+
+model Announcement {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  priority    String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  isActive    Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  expiresAt   DateTime?
+  attachments Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  subjectId String?
+  subject   Subject? @relation(fields: [subjectId], references: [id])
+  teacherId String
+  teacher   User     @relation("TeacherAnnouncements", fields: [teacherId], references: [id])
+
+  @@map("announcements")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  data      Json?            // Additional notification data
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  tableName   String?  // Table affected
+  recordId    String?  // ID of affected record
+  oldValues   Json?    // Previous values
+  newValues   Json?    // New values
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
 model SystemConfig {
-  id            String @id @default(cuid())
-  key           String @unique
-  value         String
-  description   String?
-  
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  category  String   @default("GENERAL")
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("system_config")
+}
+
+model FileUpload {
+  id           String   @id @default(cuid())
+  filename     String
+  originalName String
+  mimetype     String
+  size         Int
+  path         String   // S3 path or local path
+  uploadedBy   String
+  purpose      String   // ASSIGNMENT, SUBMISSION, PROFILE, etc.
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("file_uploads")
+}
+
+model ChatBot {
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
+  messages    Json     // Array of chat messages
+  userId      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("chatbot_sessions")
 } 
