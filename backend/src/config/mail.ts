@@ -14,7 +14,7 @@ export interface EmailOptions {
 }
 
 // Create reusable transporter object using SMTP transport
-export const transporter = nodemailer.createTransporter({
+export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: parseInt(process.env.SMTP_PORT || '587'),
   secure: false, // true for 465, false for other ports

@@ -16,6 +16,11 @@ enum Role {
   STUDENT
 }
 
+enum TeacherRole {
+  COURSE_COORDINATOR
+  LAB_INSTRUCTOR
+}
+
 enum AssignmentType {
   INDIVIDUAL
   GROUP
@@ -111,6 +116,8 @@ model User {
   quizAttempts QuizAttempt[]
   grades Grade[] @relation("StudentGrades")
   notifications Notification[]
+
+  teacherRole                TeacherRole? // For users with the TEACHER role
 
   // Admin audit logs
   auditLogs AuditLog[]

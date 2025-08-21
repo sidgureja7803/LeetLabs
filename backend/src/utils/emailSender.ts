@@ -1,4 +1,4 @@
-import { transporter, EmailOptions, EMAIL_CONFIG } from '../config/mail';
+import { transporter, EMAIL_CONFIG } from '../config/mail';
 import { logger } from './logger';
 
 export class EmailService {
@@ -383,6 +383,48 @@ export class EmailService {
       success: failed.length === 0,
       failed
     };
+  }
+
+  // Subject assignment notification
+  static async sendSubjectAssignmentEmail(
+    email: string,
+    teacherName: string,
+    subjectName: string,
+    semester: string
+  ): Promise<boolean> {
+    try {
+      const content = `
+        <h2>New Subject Assignment</h2>
+        <p>Hello <strong>${teacherName}</strong>,</p>
+        <p>You have been assigned as the instructor for the following subject:</p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin: 20px 0;">
+          <p style="margin: 5px 0;"><strong>Subject:</strong> ${subjectName}</p>
+          <p style="margin: 5px 0;"><strong>Semester:</strong> ${semester}</p>
+        </div>
+        
+        <p>You can now access the subject dashboard to manage assignments, announcements, and other course materials.</p>
+        
+        <div style="text-align: center;">
+          <a href="${process.env.FRONTEND_URL}/teacher/dashboard" class="btn">Go to Dashboard</a>
+        </div>
+        
+        <p>Best regards,<br>Thapar Virtual Labs Team</p>
+      `;
+
+      await transporter.sendMail({
+        from: EMAIL_CONFIG.from,
+        to: email,
+        subject: `New Subject Assignment: ${subjectName}`,
+        html: this.getBaseTemplate('New Subject Assignment', content)
+      });
+
+      logger.info(`Subject assignment email sent to ${email}`);
+      return true;
+    } catch (error) {
+      logger.error('Failed to send subject assignment email:', error);
+      return false;
+    }
   }
 
   // System notification

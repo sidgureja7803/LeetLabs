@@ -147,8 +147,8 @@ export default function LandingPage() {
                 <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
                   Get Started <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600">
-                  Learn More
+                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600" asChild>
+                  <Link href="/team">Meet Our Team</Link>
                 </Button>
               </div>
             </motion.div>
@@ -235,6 +235,15 @@ export default function LandingPage() {
                         'Sign In'
                       )}
                     </Button>
+                    
+                    <div className="flex justify-between text-sm">
+                      <Link href="/forgot-password" className="text-blue-600 hover:underline">
+                        Forgot password?
+                      </Link>
+                      <Link href="/signup" className="text-blue-600 hover:underline">
+                        Create account
+                      </Link>
+                    </div>
                   </form>
 
                   <div className="mt-6 text-center text-sm text-gray-600">
@@ -405,7 +414,7 @@ export default function LandingPage() {
               <h4 className="font-semibold mb-4">Quick Links</h4>
               <ul className="space-y-2 text-gray-400">
                 <li><Link href="/" className="hover:text-white">Home</Link></li>
-                <li><Link href="#" className="hover:text-white">About</Link></li>
+                <li><Link href="/team" className="hover:text-white">Our Team</Link></li>
                 <li><Link href="#" className="hover:text-white">Departments</Link></li>
                 <li><Link href="#" className="hover:text-white">Contact</Link></li>
               </ul>

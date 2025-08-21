@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { Prisma, Role } from '@prisma/client';
 import { prisma } from '../config/db';
 import { logger } from '../utils/logger';
 import { CustomError, asyncHandler } from '../middlewares/error.middleware';
@@ -12,14 +13,14 @@ export const getAllUsers = asyncHandler(async (req: AuthenticatedRequest, res: R
   
   const skip = (Number(page) - 1) * Number(limit);
   
-  const where: any = {};
+  const where: Prisma.UserWhereInput = {};
   
-  if (role) {
-    where.role = role;
+    if (role) {
+    where.role = role as Role;
   }
   
-  if (department) {
-    where.departmentId = department;
+    if (department) {
+    where.departmentId = department as string;
   }
   
   if (search) {
@@ -200,17 +201,157 @@ export const getDepartments = asyncHandler(async (req: AuthenticatedRequest, res
   });
 });
 
+// Create a new department
+export const createDepartment = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { name, code } = req.body;
+
+  // Validate required fields
+  if (!name || !code) {
+    throw new CustomError('Department name and code are required', 400);
+  }
+
+  // Check if department with same code already exists
+  const existingDepartment = await prisma.department.findFirst({
+    where: {
+      OR: [
+        { name: { equals: name, mode: 'insensitive' } },
+        { code: { equals: code, mode: 'insensitive' } },
+      ],
+    },
+  });
+
+  if (existingDepartment) {
+    throw new CustomError('Department with this name or code already exists', 400);
+  }
+
+  // Create department
+  const department = await prisma.department.create({
+    data: {
+      name,
+      code,
+    },
+  });
+
+  logger.info(`New department created: ${department.name} by admin ${req.user?.email}`);
+
+  res.status(201).json({
+    success: true,
+    message: 'Department created successfully',
+    data: {
+      department,
+    },
+  });
+});
+
+// Update a department
+export const updateDepartment = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { name, code } = req.body;
+
+  // Validate required fields
+  if (!name || !code) {
+    throw new CustomError('Department name and code are required', 400);
+  }
+
+  // Check if department exists
+  const existingDepartment = await prisma.department.findUnique({
+    where: { id },
+  });
+
+  if (!existingDepartment) {
+    throw new CustomError('Department not found', 404);
+  }
+
+  // Check if another department with same code/name exists
+  const duplicateDepartment = await prisma.department.findFirst({
+    where: {
+      OR: [
+        { name: { equals: name, mode: 'insensitive' } },
+        { code: { equals: code, mode: 'insensitive' } },
+      ],
+      NOT: {
+        id,
+      },
+    },
+  });
+
+  if (duplicateDepartment) {
+    throw new CustomError('Another department with this name or code already exists', 400);
+  }
+
+  // Update department
+  const department = await prisma.department.update({
+    where: { id },
+    data: {
+      name,
+      code,
+    },
+  });
+
+  logger.info(`Department updated: ${department.name} by admin ${req.user?.email}`);
+
+  res.json({
+    success: true,
+    message: 'Department updated successfully',
+    data: {
+      department,
+    },
+  });
+});
+
+// Delete a department
+export const deleteDepartment = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+
+  // Check if department exists
+  const existingDepartment = await prisma.department.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: {
+          users: true,
+          subjects: true,
+        },
+      },
+    },
+  });
+
+  if (!existingDepartment) {
+    throw new CustomError('Department not found', 404);
+  }
+
+  // Check if department has associated users or subjects
+  if (existingDepartment._count.users > 0 || existingDepartment._count.subjects > 0) {
+    throw new CustomError(
+      'Cannot delete department that has associated users or subjects. Reassign them first.',
+      400
+    );
+  }
+
+  // Delete department
+  await prisma.department.delete({
+    where: { id },
+  });
+
+  logger.info(`Department deleted: ${existingDepartment.name} by admin ${req.user?.email}`);
+
+  res.json({
+    success: true,
+    message: 'Department deleted successfully',
+  });
+});
+
 // Get all teachers for dropdowns
 export const getTeachers = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { departmentId } = req.query;
   
-  const where: any = {
+  const where: Prisma.UserWhereInput = {
     role: 'TEACHER',
     isActive: true,
   };
   
-  if (departmentId) {
-    where.departmentId = departmentId;
+    if (departmentId) {
+    where.departmentId = departmentId as string;
   }
 
   const teachers = await prisma.user.findMany({
@@ -246,10 +387,10 @@ export const getTeachers = asyncHandler(async (req: AuthenticatedRequest, res: R
 export const getSubjects = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { departmentId } = req.query;
   
-  const where: any = {};
+  const where: Prisma.SubjectWhereInput = {};
   
   if (departmentId) {
-    where.departmentId = departmentId;
+    where.departmentId = departmentId as string;
   }
 
   const subjects = await prisma.subject.findMany({
@@ -278,6 +419,188 @@ export const getSubjects = asyncHandler(async (req: AuthenticatedRequest, res: R
     data: {
       subjects,
     },
+  });
+});
+
+// Create a new subject
+export const createSubject = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { name, code, description, credits, semester, departmentId } = req.body;
+
+  // Validate required fields
+  if (!name || !code || !credits || !semester || !departmentId) {
+    throw new CustomError('Subject name, code, credits, semester, and department are required', 400);
+  }
+
+  // Check if department exists
+  const department = await prisma.department.findUnique({
+    where: { id: departmentId },
+  });
+
+  if (!department) {
+    throw new CustomError('Department not found', 404);
+  }
+
+  // Check if subject with same code already exists
+  const existingSubject = await prisma.subject.findFirst({
+    where: {
+      OR: [
+        { code: { equals: code, mode: 'insensitive' } },
+        {
+          AND: [
+            { name: { equals: name, mode: 'insensitive' } },
+            { departmentId },
+          ],
+        },
+      ],
+    },
+  });
+
+  if (existingSubject) {
+    throw new CustomError('Subject with this name or code already exists in this department', 400);
+  }
+
+  // Create subject
+  const subject = await prisma.subject.create({
+    data: {
+      name,
+      code,
+      description: description || '',
+      credits: parseInt(credits.toString()),
+      semester: parseInt(semester.toString()),
+      departmentId,
+    },
+    include: {
+      department: true,
+    },
+  });
+
+  logger.info(`New subject created: ${subject.name} by admin ${req.user?.email}`);
+
+  res.status(201).json({
+    success: true,
+    message: 'Subject created successfully',
+    data: {
+      subject,
+    },
+  });
+});
+
+// Update a subject
+export const updateSubject = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { name, code, description, credits, semester, departmentId } = req.body;
+
+  // Validate required fields
+  if (!name || !code || !credits || !semester || !departmentId) {
+    throw new CustomError('Subject name, code, credits, semester, and department are required', 400);
+  }
+
+  // Check if subject exists
+  const existingSubject = await prisma.subject.findUnique({
+    where: { id },
+  });
+
+  if (!existingSubject) {
+    throw new CustomError('Subject not found', 404);
+  }
+
+  // Check if department exists
+  const department = await prisma.department.findUnique({
+    where: { id: departmentId },
+  });
+
+  if (!department) {
+    throw new CustomError('Department not found', 404);
+  }
+
+  // Check if another subject with same code exists
+  const duplicateSubject = await prisma.subject.findFirst({
+    where: {
+      OR: [
+        { code: { equals: code, mode: 'insensitive' } },
+        {
+          AND: [
+            { name: { equals: name, mode: 'insensitive' } },
+            { departmentId },
+          ],
+        },
+      ],
+      NOT: {
+        id,
+      },
+    },
+  });
+
+  if (duplicateSubject) {
+    throw new CustomError('Another subject with this name or code already exists in this department', 400);
+  }
+
+  // Update subject
+  const subject = await prisma.subject.update({
+    where: { id },
+    data: {
+      name,
+      code,
+      description: description || '',
+      credits: parseInt(credits.toString()),
+      semester: parseInt(semester.toString()),
+      departmentId,
+    },
+    include: {
+      department: true,
+    },
+  });
+
+  logger.info(`Subject updated: ${subject.name} by admin ${req.user?.email}`);
+
+  res.json({
+    success: true,
+    message: 'Subject updated successfully',
+    data: {
+      subject,
+    },
+  });
+});
+
+// Delete a subject
+export const deleteSubject = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+
+  // Check if subject exists
+  const existingSubject = await prisma.subject.findUnique({
+    where: { id },
+    include: {
+      _count: {
+        select: {
+          assignments: true,
+          teacherSubjects: true,
+        },
+      },
+    },
+  });
+
+  if (!existingSubject) {
+    throw new CustomError('Subject not found', 404);
+  }
+
+  // Check if subject has associated assignments or teacher assignments
+  if (existingSubject._count.assignments > 0 || existingSubject._count.teacherSubjects > 0) {
+    throw new CustomError(
+      'Cannot delete subject that has associated assignments or teacher assignments',
+      400
+    );
+  }
+
+  // Delete subject
+  await prisma.subject.delete({
+    where: { id },
+  });
+
+  logger.info(`Subject deleted: ${existingSubject.name} by admin ${req.user?.email}`);
+
+  res.json({
+    success: true,
+    message: 'Subject deleted successfully',
   });
 });
 
@@ -346,7 +669,20 @@ export const assignTeacherToSubject = asyncHandler(async (req: AuthenticatedRequ
     },
   });
 
-  logger.info(`Teacher ${teacher.firstName} ${teacher.lastName} assigned to subject ${subject.name} for ${semester}`);
+  // Send email notification to the teacher
+  try {
+    await EmailService.sendSubjectAssignmentEmail(
+      assignment.teacher.email,
+      `${assignment.teacher.firstName} ${assignment.teacher.lastName}`,
+      assignment.subject.name,
+      semester
+    );
+  } catch (emailError) {
+    logger.error('Failed to send subject assignment email:', emailError);
+    // We don't want to fail the whole request if the email fails, so we just log the error
+  }
+
+  logger.info(`Teacher ${assignment.teacher.firstName} ${assignment.teacher.lastName} assigned to subject ${assignment.subject.name} for ${semester}`);
 
   res.json({
     success: true,

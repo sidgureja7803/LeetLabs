@@ -68,6 +68,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           ...baseItems,
           { name: 'My Subjects', href: '/teacher/subjects', icon: BookOpen },
           { name: 'Assignments', href: '/teacher/assignments', icon: Assignment },
+          { name: 'Quizzes', href: '/teacher/quizzes', icon: ClipboardCheck },
           { name: 'Submissions', href: '/teacher/submissions', icon: ClipboardCheck },
           { name: 'Students', href: '/teacher/students', icon: Users }
         ];
@@ -75,6 +76,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         return [
           ...baseItems,
           { name: 'Assignments', href: '/student/assignments', icon: Assignment },
+          { name: 'Quizzes', href: '/student/quizzes', icon: ClipboardCheck },
           { name: 'Submissions', href: '/student/submissions', icon: ClipboardCheck },
           { name: 'Grades', href: '/student/grades', icon: BookOpen },
           { name: 'Subjects', href: '/student/subjects', icon: BookOpen }

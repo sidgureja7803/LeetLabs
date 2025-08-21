@@ -89,6 +89,18 @@ export const authAPI = {
   
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.patch('/auth/change-password', data),
+    
+  verifyEmail: (data: { token: string; email: string }) =>
+    api.post('/auth/verify-email', data),
+    
+  resendVerification: (data: { email: string }) =>
+    api.post('/auth/resend-verification', data),
+    
+  forgotPassword: (data: { email: string }) =>
+    api.post('/auth/forgot-password', data),
+    
+  resetPassword: (data: { token: string; email: string; password: string }) =>
+    api.post('/auth/reset-password', data),
 };
 
 export const adminAPI = {
@@ -111,11 +123,43 @@ export const adminAPI = {
   
   getDepartments: () => api.get('/admin/departments'),
   
+  createDepartment: (departmentData: {
+    name: string;
+    code: string;
+  }) => api.post('/admin/departments', departmentData),
+  
+  updateDepartment: (departmentId: string, departmentData: {
+    name: string;
+    code: string;
+  }) => api.put(`/admin/departments/${departmentId}`, departmentData),
+  
+  deleteDepartment: (departmentId: string) => api.delete(`/admin/departments/${departmentId}`),
+  
   getTeachers: (departmentId?: string) =>
     api.get('/admin/teachers', { params: { departmentId } }),
   
   getSubjects: (departmentId?: string) =>
     api.get('/admin/subjects', { params: { departmentId } }),
+  
+  createSubject: (subjectData: {
+    name: string;
+    code: string;
+    description?: string;
+    credits: number;
+    semester: number;
+    departmentId: string;
+  }) => api.post('/admin/subjects', subjectData),
+  
+  updateSubject: (subjectId: string, subjectData: {
+    name: string;
+    code: string;
+    description?: string;
+    credits: number;
+    semester: number;
+    departmentId: string;
+  }) => api.put(`/admin/subjects/${subjectId}`, subjectData),
+  
+  deleteSubject: (subjectId: string) => api.delete(`/admin/subjects/${subjectId}`),
   
   assignTeacherToSubject: (data: {
     teacherId: string;
@@ -145,6 +189,10 @@ export const assignmentsAPI = {
   
   getAssignment: (assignmentId: string) => api.get(`/assignments/${assignmentId}`),
   
+  getStudentAssignments: () => api.get('/student/assignments'),
+  
+  getTeacherAssignments: () => api.get('/teacher/assignments'),
+  
   updateAssignment: (assignmentId: string, data: FormData) =>
     api.put(`/assignments/${assignmentId}`, data, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -164,11 +212,42 @@ export const submissionsAPI = {
   
   getMySubmissions: () => api.get('/submissions/my-submissions'),
   
+  getStudentSubmissions: () => api.get('/student/submissions'),
+  
   getSubmissionDetails: (submissionId: string) =>
     api.get(`/submissions/${submissionId}`),
   
   gradeSubmission: (submissionId: string, data: { marks: number; feedback?: string }) =>
     api.patch(`/submissions/${submissionId}/grade`, data),
+};
+
+export const quizAPI = {
+  createQuiz: (quizData: any) => api.post('/quizzes', quizData),
+  
+  getTeacherQuizzes: () => api.get('/quizzes/teacher'),
+  
+  getStudentQuizzes: () => api.get('/quizzes/student'),
+  
+  getQuizDetails: (quizId: string) => api.get(`/quizzes/${quizId}`),
+  
+  updateQuiz: (quizId: string, quizData: any) => api.put(`/quizzes/${quizId}`, quizData),
+  
+  deleteQuiz: (quizId: string) => api.delete(`/quizzes/${quizId}`),
+  
+  scheduleQuiz: (scheduleData: any) => api.post('/quizzes/schedule', scheduleData),
+  
+  extractQuestionsFromFile: (formData: FormData) => api.post('/quizzes/extract-questions', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  
+  startQuizAttempt: (quizId: string) => api.post(`/quizzes/${quizId}/attempt`),
+  
+  submitQuizAnswer: (attemptId: string, questionId: string, answer: string) => 
+    api.post(`/quizzes/attempts/${attemptId}/questions/${questionId}/answer`, { answer }),
+  
+  submitQuizAttempt: (attemptId: string) => api.post(`/quizzes/attempts/${attemptId}/submit`),
+  
+  getQuizResults: (quizId: string) => api.get(`/quizzes/${quizId}/results`),
 };
 
 export const filesAPI = {
