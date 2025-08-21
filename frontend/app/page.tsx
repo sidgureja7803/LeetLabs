@@ -23,7 +23,8 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
