@@ -202,7 +202,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
         emailVerificationToken: token,
         emailVerificationExpires: {
           gt: new Date()
-        }
+        } as any
       }
     });
 
@@ -221,7 +221,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
         isActive: true,
         emailVerificationToken: null,
         emailVerificationExpires: null
-      }
+      } as any
     });
 
     logger.info(`Email verified for user: ${user.email}`);
@@ -254,7 +254,7 @@ export const resendVerification = asyncHandler(async (req: Request, res: Respons
       });
     }
 
-    if (user.isEmailVerified) {
+    if ((user as any).isEmailVerified) {
       return res.status(400).json({
         success: false,
         message: 'Email is already verified'
@@ -270,7 +270,7 @@ export const resendVerification = asyncHandler(async (req: Request, res: Respons
       data: {
         emailVerificationToken: verificationToken,
         emailVerificationExpires: verificationExpires
-      }
+      } as any
     });
 
     // Send verification email
@@ -311,7 +311,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       throw new CustomError('Invalid email or password', 401);
     }
 
-    if (!user.isEmailVerified) {
+    if (!(user as any).isEmailVerified) {
       return res.status(401).json({
         success: false,
         message: 'Please verify your email before logging in',
@@ -332,7 +332,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     // Update last login
     await prisma.user.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() }
+      data: { lastLoginAt: new Date() } as any
     });
 
     // Generate token
@@ -387,7 +387,7 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
       data: {
         passwordResetToken: resetToken,
         passwordResetExpires: resetExpires
-      }
+      } as any
     });
 
     // Send reset email
@@ -426,8 +426,8 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
         passwordResetToken: token,
         passwordResetExpires: {
           gt: new Date()
-        }
-      }
+        } as any
+      } as any
     });
 
     if (!user) {
@@ -447,7 +447,7 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
         password: hashedPassword,
         passwordResetToken: null,
         passwordResetExpires: null
-      }
+      } as any
     });
 
     logger.info(`Password reset successful for: ${user.email}`);

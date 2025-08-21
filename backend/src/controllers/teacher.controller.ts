@@ -4,11 +4,20 @@ import { S3Service } from '../utils/s3Uploader';
 import { EmailService } from '../utils/emailSender';
 import { logger } from '../utils/logger';
 
+// Define extended Request type with user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
 const prisma = new PrismaClient();
 
 export const teacherController = {
   // Get teacher dashboard data
-  getDashboard: async (req: Request, res: Response) => {
+  getDashboard: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const teacherId = req.user.id;
       
@@ -16,7 +25,7 @@ export const teacherController = {
         where: { id: teacherId },
         include: {
           department: true,
-          taughtSubjects: {
+          subjectsTeaching: {
             include: {
               assignments: {
                 include: {
@@ -30,26 +39,26 @@ export const teacherController = {
             }
           }
         }
-      });
+      }) as any;
 
       if (!teacher) {
         return res.status(404).json({ message: 'Teacher not found' });
       }
 
       // Calculate statistics
-      const totalSubjects = teacher.taughtSubjects.length;
-      const totalAssignments = teacher.taughtSubjects.reduce(
-        (acc, subject) => acc + subject.assignments.length, 0
+      const totalSubjects = teacher.subjectsTeaching.length;
+      const totalAssignments = teacher.subjectsTeaching.reduce(
+        (acc: number, subject: any) => acc + subject.assignments.length, 0
       );
-      const totalSubmissions = teacher.taughtSubjects.reduce(
-        (acc, subject) => acc + subject.assignments.reduce(
-          (subAcc, assignment) => subAcc + assignment.submissions.length, 0
+      const totalSubmissions = teacher.subjectsTeaching.reduce(
+        (acc: number, subject: any) => acc + subject.assignments.reduce(
+          (subAcc: number, assignment: any) => subAcc + assignment.submissions.length, 0
         ), 0
       );
-      const pendingGrading = teacher.taughtSubjects.reduce(
-        (acc, subject) => acc + subject.assignments.reduce(
-          (subAcc, assignment) => subAcc + assignment.submissions.filter(
-            sub => !sub.grade
+      const pendingGrading = teacher.subjectsTeaching.reduce(
+        (acc: number, subject: any) => acc + subject.assignments.reduce(
+          (subAcc: number, assignment: any) => subAcc + assignment.submissions.filter(
+            (sub: any) => !sub.grade
           ).length, 0
         ), 0
       );
@@ -57,9 +66,9 @@ export const teacherController = {
       res.json({
         teacher: {
           id: teacher.id,
-          name: teacher.name,
+          name: `${teacher.firstName} ${teacher.lastName}`,
           email: teacher.email,
-          department: teacher.department.name
+          department: teacher.department?.name || 'Unknown'
         },
         stats: {
           totalSubjects,
@@ -67,7 +76,7 @@ export const teacherController = {
           totalSubmissions,
           pendingGrading
         },
-        subjects: teacher.taughtSubjects
+        subjects: teacher.subjectsTeaching
       });
     } catch (error) {
       logger.error('Error fetching teacher dashboard:', error);
@@ -76,12 +85,14 @@ export const teacherController = {
   },
 
   // Get all subjects taught by teacher
-  getSubjects: async (req: Request, res: Response) => {
+  getSubjects: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const teacherId = req.user.id;
       
       const subjects = await prisma.subject.findMany({
-        where: { teacherId },
+        where: { 
+          teacherId: teacherId 
+        } as any,
         include: {
           department: true,
           assignments: {
@@ -103,14 +114,17 @@ export const teacherController = {
   },
 
   // Create new assignment
-  createAssignment: async (req: Request, res: Response) => {
+  createAssignment: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { title, description, subjectId, dueDate, maxMarks, semester } = req.body;
       const teacherId = req.user.id;
 
       // Verify teacher owns this subject
       const subject = await prisma.subject.findFirst({
-        where: { id: subjectId, teacherId }
+        where: { 
+          id: subjectId, 
+          teacherId: teacherId 
+        } as any
       });
 
       if (!subject) {
@@ -131,11 +145,11 @@ export const teacherController = {
           description,
           subjectId,
           dueDate: new Date(dueDate),
-          maxMarks: parseInt(maxMarks),
-          semester: parseInt(semester),
+          maxMarks: parseInt(maxMarks as string),
+          semester: parseInt(semester as string),
           attachmentUrl,
-          createdById: teacherId
-        },
+          teacherId: teacherId
+        } as any,
         include: {
           subject: {
             include: {
@@ -149,9 +163,9 @@ export const teacherController = {
       const students = await prisma.user.findMany({
         where: {
           role: 'STUDENT',
-          semester: parseInt(semester),
-          departmentId: assignment.subject.departmentId
-        }
+          semester: parseInt(semester as string),
+          departmentId: assignment.subject?.departmentId
+        } as any
       });
 
       // Send emails asynchronously
@@ -159,10 +173,11 @@ export const teacherController = {
         try {
           await EmailService.sendAssignmentNotification(
             student.email,
-            student.name,
+            `${student.firstName} ${student.lastName}`,
             title,
-            assignment.subject.name,
-            new Date(dueDate)
+            assignment.subject?.name || 'Unknown Subject',
+            new Date(dueDate),
+            ''  // Empty string for additional message
           );
         } catch (emailError) {
           logger.error('Error sending assignment notification:', emailError);
@@ -177,7 +192,7 @@ export const teacherController = {
   },
 
   // Get assignment details with submissions
-  getAssignment: async (req: Request, res: Response) => {
+  getAssignment: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { assignmentId } = req.params;
       const teacherId = req.user.id;
@@ -186,9 +201,9 @@ export const teacherController = {
         where: {
           id: assignmentId,
           subject: {
-            teacherId
-          }
-        },
+            teacherId: teacherId
+          } as any
+        } as any,
         include: {
           subject: true,
           submissions: {
@@ -219,7 +234,7 @@ export const teacherController = {
   },
 
   // Grade a submission
-  gradeSubmission: async (req: Request, res: Response) => {
+  gradeSubmission: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { submissionId } = req.params;
       const { grade, feedback } = req.body;
@@ -281,7 +296,7 @@ export const teacherController = {
   },
 
   // Get students in teacher's subjects
-  getStudents: async (req: Request, res: Response) => {
+  getStudents: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const teacherId = req.user.id;
       const { semester } = req.query;
@@ -325,7 +340,7 @@ export const teacherController = {
   },
 
   // Update assignment
-  updateAssignment: async (req: Request, res: Response) => {
+  updateAssignment: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { assignmentId } = req.params;
       const { title, description, dueDate, maxMarks } = req.body;
@@ -375,7 +390,7 @@ export const teacherController = {
   },
 
   // Delete assignment
-  deleteAssignment: async (req: Request, res: Response) => {
+  deleteAssignment: async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { assignmentId } = req.params;
       const teacherId = req.user.id;
