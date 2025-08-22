@@ -23,7 +23,7 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,9 +33,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   useEffect(() => {
     if (user) {
       const currentPath = window.location.pathname;
-      const expectedPath = `/${user.role.toLowerCase()}`;
+      const expectedPath = `/dashboard/${user.role.toLowerCase()}`;
       
-      if (currentPath === '/' || (!currentPath.includes('/admin') && !currentPath.includes('/teacher') && !currentPath.includes('/student'))) {
+      if (currentPath === '/' || (!currentPath.includes('/dashboard'))) {
         router.push(expectedPath);
       }
     }
@@ -52,34 +52,34 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const getNavigationItems = () => {
     const baseItems = [
-      { name: 'Dashboard', href: `/${user?.role.toLowerCase()}`, icon: Home }
+      { name: 'Dashboard', href: `/dashboard/${user?.role.toLowerCase()}`, icon: Home }
     ];
 
     switch (user?.role) {
       case 'ADMIN':
         return [
           ...baseItems,
-          { name: 'User Management', href: '/admin/users', icon: Users },
-          { name: 'Departments', href: '/admin/departments', icon: BookOpen },
-          { name: 'System Settings', href: '/admin/settings', icon: Settings }
+          { name: 'User Management', href: '/dashboard/admin/users', icon: Users },
+          { name: 'Departments', href: '/dashboard/admin/departments', icon: BookOpen },
+          { name: 'System Settings', href: '/dashboard/admin/settings', icon: Settings }
         ];
       case 'TEACHER':
         return [
           ...baseItems,
-          { name: 'My Subjects', href: '/teacher/subjects', icon: BookOpen },
-          { name: 'Assignments', href: '/teacher/assignments', icon: Assignment },
-          { name: 'Quizzes', href: '/teacher/quizzes', icon: ClipboardCheck },
-          { name: 'Submissions', href: '/teacher/submissions', icon: ClipboardCheck },
-          { name: 'Students', href: '/teacher/students', icon: Users }
+          { name: 'My Subjects', href: '/dashboard/teacher/subjects', icon: BookOpen },
+          { name: 'Assignments', href: '/dashboard/teacher/assignments', icon: Assignment },
+          { name: 'Quizzes', href: '/dashboard/teacher/quizzes', icon: ClipboardCheck },
+          { name: 'Submissions', href: '/dashboard/teacher/submissions', icon: ClipboardCheck },
+          { name: 'Students', href: '/dashboard/teacher/students', icon: Users }
         ];
       case 'STUDENT':
         return [
           ...baseItems,
-          { name: 'Assignments', href: '/student/assignments', icon: Assignment },
-          { name: 'Quizzes', href: '/student/quizzes', icon: ClipboardCheck },
-          { name: 'Submissions', href: '/student/submissions', icon: ClipboardCheck },
-          { name: 'Grades', href: '/student/grades', icon: BookOpen },
-          { name: 'Subjects', href: '/student/subjects', icon: BookOpen }
+          { name: 'Assignments', href: '/dashboard/student/assignments', icon: Assignment },
+          { name: 'Quizzes', href: '/dashboard/student/quizzes', icon: ClipboardCheck },
+          { name: 'Submissions', href: '/dashboard/student/submissions', icon: ClipboardCheck },
+          { name: 'Grades', href: '/dashboard/student/grades', icon: BookOpen },
+          { name: 'Subjects', href: '/dashboard/student/subjects', icon: BookOpen }
         ];
       default:
         return baseItems;

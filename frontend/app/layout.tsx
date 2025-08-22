@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -41,17 +40,6 @@ export const metadata: Metadata = {
   },
 };
 
-function LayoutSelector({ children, pathname }: { children: React.ReactNode; pathname: string }) {
-  const isDashboardPage = pathname?.startsWith('/admin') || 
-                          pathname?.startsWith('/teacher') || 
-                          pathname?.startsWith('/student');
-
-  if (isDashboardPage) {
-    return <DashboardLayout>{children}</DashboardLayout>;
-  }
-
-  return <>{children}</>;
-}
 
 export default function RootLayout({
   children,
@@ -76,9 +64,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className} suppressHydrationWarning>
         <AuthProvider>
-          <LayoutSelector pathname={typeof window !== 'undefined' ? window.location.pathname : ''}>
-            {children}
-          </LayoutSelector>
+          {children}
           <Toaster />
         </AuthProvider>
       </body>

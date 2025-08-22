@@ -211,7 +211,8 @@ export const teacherController = {
               student: {
                 select: {
                   id: true,
-                  name: true,
+                  firstName: true,
+                  lastName: true,
                   email: true,
                   rollNumber: true
                 }
@@ -246,10 +247,10 @@ export const teacherController = {
           id: submissionId,
           assignment: {
             subject: {
-              teacherId
-            }
-          }
-        },
+              teacherId: teacherId
+            } as any
+          } as any
+        } as any,
         include: {
           assignment: {
             include: {
@@ -267,10 +268,10 @@ export const teacherController = {
       const updatedSubmission = await prisma.submission.update({
         where: { id: submissionId },
         data: {
-          grade: parseFloat(grade),
+          grade: parseFloat(grade as string),
           feedback,
           gradedAt: new Date()
-        },
+        } as any,
         include: {
           student: true,
           assignment: true
@@ -280,9 +281,9 @@ export const teacherController = {
       // Send notification email to student
       try {
         await EmailService.sendBulkEmail(
-          [updatedSubmission.student.email],
-          `Assignment Graded: ${updatedSubmission.assignment.title}`,
-          `Your assignment "${updatedSubmission.assignment.title}" has been graded. Grade: ${grade}/${updatedSubmission.assignment.maxMarks}`
+          [updatedSubmission.student?.email || ''],
+          `Assignment Graded: ${updatedSubmission.assignment?.title || 'Assignment'}`,
+          `Your assignment "${updatedSubmission.assignment?.title || 'Assignment'}" has been graded. Grade: ${grade}/${updatedSubmission.assignment?.maxMarks || 100}`
         );
       } catch (emailError) {
         logger.error('Error sending grade notification:', emailError);
@@ -323,13 +324,14 @@ export const teacherController = {
         where: whereClause,
         select: {
           id: true,
-          name: true,
+          firstName: true,
+          lastName: true,
           email: true,
           rollNumber: true,
           semester: true,
           createdAt: true
         },
-        orderBy: { name: 'asc' }
+        orderBy: { firstName: 'asc' }
       });
 
       res.json(students);

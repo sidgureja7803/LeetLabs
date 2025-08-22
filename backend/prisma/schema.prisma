@@ -116,6 +116,7 @@ model User {
   quizAttempts QuizAttempt[]
   grades Grade[] @relation("StudentGrades")
   notifications Notification[]
+  dsaSolutions DSASolution[]
 
   teacherRole                TeacherRole? // For users with the TEACHER role
 
@@ -450,4 +451,73 @@ model ChatBot {
   updatedAt   DateTime @updatedAt
 
   @@map("chatbot_sessions")
+}
+
+enum DSADifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model DSACategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  iconName    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  problems    DSAProblem[]
+
+  @@map("dsa_categories")
+}
+
+model DSAProblem {
+  id               String        @id @default(cuid())
+  title            String
+  description      String
+  difficulty       DSADifficulty @default(EASY)
+  timeComplexity   String?       // Expected time complexity (e.g., O(n), O(n log n))
+  spaceComplexity  String?       // Expected space complexity
+  hints            Json?         // Array of hints
+  sampleTestCases  Json          // Array of sample test cases
+  hiddenTestCases  Json          // Array of hidden test cases for validation
+  codeTemplates    Json          // Map of language to code template
+  solutions        Json?         // Map of language to solution code
+  tags             String[]      // Array of tags for searching
+  isPublished      Boolean       @default(false)
+  isPopular        Boolean       @default(false)
+  slug             String        @unique
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Relations
+  categoryId String
+  category   DSACategory @relation(fields: [categoryId], references: [id])
+
+  userSolutions DSASolution[]
+
+  @@map("dsa_problems")
+}
+
+model DSASolution {
+  id            String   @id @default(cuid())
+  code          String
+  language      String   // Programming language (e.g., "javascript", "python")
+  status        String   // "ACCEPTED", "WRONG_ANSWER", "TIME_LIMIT_EXCEEDED", etc.
+  runTime       Int?     // Execution time in milliseconds
+  memory        Int?     // Memory used in KB
+  testResults   Json?    // Results of test cases
+  submittedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  problemId String
+  problem   DSAProblem @relation(fields: [problemId], references: [id])
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+
+  @@map("dsa_solutions")
 } 
