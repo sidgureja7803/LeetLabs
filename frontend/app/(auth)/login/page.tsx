@@ -135,9 +135,9 @@ export default function LoginPage() {
             <div className="mt-6 text-center text-sm text-gray-600">
               <p>Demo Credentials:</p>
               <div className="mt-2 space-y-1 text-xs">
-                <p><strong>Admin:</strong> admin@thapar.edu / admin123</p>
-                <p><strong>Teacher:</strong> teacher@thapar.edu / teacher123</p>
-                <p><strong>Student:</strong> student@thapar.edu / student123</p>
+                <p><strong>Admin:</strong> head.csed@thapar.edu / 123456</p>
+                <p><strong>Teacher:</strong> amrita@thapar.edu / 123456</p>
+                <p><strong>Student:</strong> sgureja_be22@thapar.edu / 123456</p>
               </div>
             </div>
           </CardContent>

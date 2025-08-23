@@ -105,7 +105,6 @@ model User {
 
   // Teacher relations
   subjectsTeaching Subject[] @relation("TeacherSubjects")
-  teacherSubjects TeacherSubject[]
   assignmentsCreated Assignment[] @relation("TeacherAssignments")
   quizzesCreated Quiz[] @relation("TeacherQuizzes")
   gradesGiven Grade[] @relation("TeacherGrades")
@@ -157,26 +156,8 @@ model Subject {
   quizzes      Quiz[]
   announcements Announcement[]
   contents     Content[]
-  teacherSubjects TeacherSubject[]
 
   @@map("subjects")
-}
-
-model TeacherSubject {
-  id          String   @id @default(cuid())
-  semester    String   // e.g., "2023Fall", "2024Spring"
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  teacherId   String
-  teacher     User     @relation(fields: [teacherId], references: [id])
-  subjectId   String
-  subject     Subject  @relation(fields: [subjectId], references: [id])
-
-  @@unique([teacherId, subjectId, semester])
-  @@map("teacher_subjects")
 }
 
 model Enrollment {

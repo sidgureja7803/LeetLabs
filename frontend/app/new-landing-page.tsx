@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
   BookOpen, 
   Users, 
@@ -38,21 +40,38 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function EnhancedLandingPage() {
+  const router = useRouter();
   const [loginData, setLoginData] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setSuccess('');
 
+    // Check for dummy credentials
     setTimeout(() => {
       if (loginData.email && loginData.password) {
         setSuccess('Login successful! Redirecting...');
+        
+        // Check user type based on email and redirect to appropriate dashboard
+        if (loginData.email === 'admin@thapar.edu') {
+          setTimeout(() => router.push('/admin'), 1000);
+        } else if (loginData.email === 'teacher@thapar.edu') {
+          setTimeout(() => router.push('/teacher'), 1000);
+        } else if (loginData.email === 'student@thapar.edu') {
+          setTimeout(() => router.push('/student'), 1000);
+        } else if (loginData.email.includes('student')) {
+          setTimeout(() => router.push('/student'), 1000);
+        } else if (loginData.email.includes('teacher')) {
+          setTimeout(() => router.push('/teacher'), 1000);
+        } else {
+          setTimeout(() => router.push('/student'), 1000); // Default to student
+        }
       } else {
         setError('Please enter valid credentials.');
       }
@@ -210,7 +229,18 @@ export default function EnhancedLandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center overflow-hidden">        
+        {/* Admin Block Background Image */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-purple-900/80 to-indigo-900/90 z-10" />
+          <Image 
+            src="/assets/Admin-Block.png" 
+            alt="Thapar Admin Block" 
+            fill 
+            className="object-cover object-center" 
+            priority 
+          />
+        </div>
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-900/90 via-purple-900/80 to-indigo-900/90 z-10" />
           <div 
@@ -225,6 +255,23 @@ export default function EnhancedLandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Hero Content */}
             <div className="text-white">
+              {/* TIET Logo and Name */}
+              <div className="flex items-center mb-8 space-x-4">
+                <Image 
+                  src="/assets/Tiet-Logo.png" 
+                  alt="Thapar Institute Logo" 
+                  width={80} 
+                  height={80} 
+                  className="rounded-full bg-white p-1" 
+                />
+                <Image 
+                  src="/assets/Name.png" 
+                  alt="Thapar Institute Name" 
+                  width={280} 
+                  height={60} 
+                  className="rounded-md bg-white/20 backdrop-blur-sm p-2" 
+                />
+              </div>
               <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm mb-6">
                 <Star className="h-4 w-4 mr-2 text-yellow-400" />
                 Next-Generation Virtual Learning
@@ -373,6 +420,7 @@ export default function EnhancedLandingPage() {
                       <p><strong className="text-blue-600">Admin:</strong> admin@thapar.edu / admin123</p>
                       <p><strong className="text-purple-600">Teacher:</strong> teacher@thapar.edu / teacher123</p>
                       <p><strong className="text-green-600">Student:</strong> student@thapar.edu / student123</p>
+                      <p><strong className="text-green-600">Student (Siddhant):</strong> siddhant.gureja@thapar.edu / student123</p>
                     </div>
                   </div>
                 </CardContent>
@@ -493,12 +541,13 @@ export default function EnhancedLandingPage() {
 
             <div>
               <div className="relative rounded-2xl overflow-hidden shadow-2xl group">
-                <div 
-                  className="w-full h-96 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                  style={{
-                    backgroundImage: "linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)"
-                  }}
-                >
+                <div className="w-full h-96 relative">
+                  <Image 
+                    src="/assets/Admin-Block.png" 
+                    alt="Thapar Admin Block" 
+                    fill 
+                    className="object-cover object-center transition-transform duration-700 group-hover:scale-105" 
+                  />
                   <div className="absolute inset-0 bg-gradient-to-br from-orange-900/30 to-red-900/30" />
                 </div>
                 <div className="absolute bottom-4 left-4 right-4">
@@ -704,8 +753,13 @@ export default function EnhancedLandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-2">
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Beaker className="h-7 w-7 text-white" />
+                <div className="w-12 h-12 relative">
+                  <Image 
+                    src="/assets/Tiet-Logo.png" 
+                    alt="Thapar Institute Logo" 
+                    fill 
+                    className="rounded-xl" 
+                  />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold">Thapar Virtual Labs</h3>

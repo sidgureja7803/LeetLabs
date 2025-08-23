@@ -39,7 +39,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+// Removing the separator import as it doesn't exist
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   PlusCircle,

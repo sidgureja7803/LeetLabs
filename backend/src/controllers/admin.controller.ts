@@ -307,12 +307,8 @@ export const deleteDepartment = asyncHandler(async (req: AuthenticatedRequest, r
   const existingDepartment = await prisma.department.findUnique({
     where: { id },
     include: {
-      _count: {
-        select: {
-          users: true,
-          subjects: true,
-        },
-      },
+      users: true,
+      subjects: true,
     },
   });
 
@@ -321,7 +317,7 @@ export const deleteDepartment = asyncHandler(async (req: AuthenticatedRequest, r
   }
 
   // Check if department has associated users or subjects
-  if (existingDepartment._count.users > 0 || existingDepartment._count.subjects > 0) {
+  if (existingDepartment.users.length > 0 || existingDepartment.subjects.length > 0) {
     throw new CustomError(
       'Cannot delete department that has associated users or subjects. Reassign them first.',
       400
@@ -570,12 +566,8 @@ export const deleteSubject = asyncHandler(async (req: AuthenticatedRequest, res:
   const existingSubject = await prisma.subject.findUnique({
     where: { id },
     include: {
-      _count: {
-        select: {
-          assignments: true,
-          teacherSubjects: true,
-        },
-      },
+      assignments: true,
+      teacherSubjects: true,
     },
   });
 
@@ -584,7 +576,7 @@ export const deleteSubject = asyncHandler(async (req: AuthenticatedRequest, res:
   }
 
   // Check if subject has associated assignments or teacher assignments
-  if (existingSubject._count.assignments > 0 || existingSubject._count.teacherSubjects > 0) {
+  if (existingSubject.assignments.length > 0 || existingSubject.teacherSubjects.length > 0) {
     throw new CustomError(
       'Cannot delete subject that has associated assignments or teacher assignments',
       400
@@ -711,12 +703,11 @@ export const flushSemester = asyncHandler(async (req: AuthenticatedRequest, res:
       // Get assignments for the semester
       const assignmentsToDelete = await tx.assignment.findMany({
         where: {
-          subject: {
-            teacherSubjects: {
-              some: {
-                semester: semesterToFlush,
-              },
-            },
+          subjectId: {
+            in: await tx.teacherSubjects.findMany({
+              where: { semester: semesterToFlush },
+              select: { subjectId: true },
+            }).then((records: {subjectId: string}[]) => records.map((record: {subjectId: string}) => record.subjectId)),
           },
         },
         select: { id: true },
@@ -809,7 +800,7 @@ export const getSystemStats = asyncHandler(async (req: AuthenticatedRequest, res
         subjects: totalSubjects,
         assignments: totalAssignments,
         submissions: totalSubmissions,
-        activeSemesters: activeSemesters.map(s => s.semester),
+        activeSemesters: activeSemesters.map((s: { semester: string }) => s.semester),
       },
     },
   });

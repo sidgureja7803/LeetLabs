@@ -114,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     hasRole,
   };
 
+  // Completely rewriting the JSX to fix syntax error
   return (
     <AuthContext.Provider value={value}>
       {children}

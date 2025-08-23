@@ -53,7 +53,7 @@ const setAuthCookie = (res: Response, token: string): void => {
   res.cookie('authToken', token, cookieOptions);
 };
 
-export const register = asyncHandler(async (req: Request, res: Response) => {
+export const register = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   try {
     // Validation
     const errors = validationResult(req);
@@ -185,7 +185,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
+export const verifyEmail = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   try {
     const { token } = req.body;
 
@@ -239,7 +239,7 @@ export const verifyEmail = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export const resendVerification = asyncHandler(async (req: Request, res: Response) => {
+export const resendVerification = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   try {
     const { email } = req.body;
 
@@ -290,7 +290,7 @@ export const resendVerification = asyncHandler(async (req: Request, res: Respons
   }
 });
 
-export const login = asyncHandler(async (req: Request, res: Response) => {
+export const login = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   try {
     const { email, password }: LoginRequest = req.body;
 
@@ -362,7 +362,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+export const forgotPassword = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   try {
     const { email } = req.body;
 
@@ -409,7 +409,7 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
   }
 });
 
-export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
+export const resetPassword = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   try {
     const { token, password } = req.body;
 
@@ -465,7 +465,7 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
   }
 });
 
-export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   if (!req.user) {
     throw new CustomError('User not authenticated', 401);
   }
@@ -513,7 +513,7 @@ export const changePassword = asyncHandler(async (req: AuthenticatedRequest, res
   });
 });
 
-export const logout = asyncHandler(async (req: Request, res: Response) => {
+export const logout = asyncHandler(async (req: Request, res: Response): Promise<any> => {
   res.clearCookie('authToken');
   
   res.json({
@@ -522,7 +522,7 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-export const getCurrentUser = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+export const getCurrentUser = asyncHandler(async (req: AuthenticatedRequest, res: Response): Promise<any> => {
   if (!req.user) {
     throw new CustomError('User not authenticated', 401);
   }

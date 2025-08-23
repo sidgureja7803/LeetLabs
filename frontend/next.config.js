@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // App directory is now a stable feature in Next.js
   experimental: {
-    appDir: true,
   },
   images: {
     domains: [

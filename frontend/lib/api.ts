@@ -1,4 +1,11 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+
+// Define type for API error response
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+  statusCode?: number;
+}
 import { toast } from '@/components/ui/use-toast';
 
 // Create axios instance with default config
@@ -28,28 +35,32 @@ api.interceptors.response.use(
   (response: AxiosResponse) => {
     return response;
   },
-  (error: AxiosError) => {
-    const message = error.response?.data?.message || error.message || 'An error occurred';
+  (error: AxiosError<ApiErrorResponse>) => {
+    // Safely extract error message with proper type checking
+    const errorData = error.response?.data;
+    const message = errorData?.message || errorData?.error || error.message || 'An error occurred';
     
-    // Handle specific error cases
-    if (error.response?.status === 401) {
+    // Handle specific error cases with null checking
+    const status = error.response?.status;
+    
+    if (status === 401) {
       // Redirect to login page on unauthorized
       if (typeof window !== 'undefined') {
         window.location.href = '/';
       }
-    } else if (error.response?.status === 403) {
+    } else if (status === 403) {
       toast({
         title: 'Access Denied',
         description: 'You do not have permission to perform this action.',
         variant: 'destructive',
       });
-    } else if (error.response?.status === 429) {
+    } else if (status === 429) {
       toast({
         title: 'Too Many Requests',
         description: 'Please slow down and try again later.',
         variant: 'destructive',
       });
-    } else if (error.response?.status >= 500) {
+    } else if (status && status >= 500) {
       toast({
         title: 'Server Error',
         description: 'Something went wrong on our end. Please try again later.',

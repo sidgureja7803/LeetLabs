@@ -27,36 +27,36 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
   {
     id: 1,
-    name: "Dr. Rajesh Kumar",
-    role: "Project Lead",
+    name: "Siddhant Gureja",
+    role: "Fulll Stack Web Developer",
     bio: "Dr. Kumar is a Professor of Computer Science with over 15 years of experience in educational technology. He leads the development of Thapar Virtual Labs.",
     image: "/assets/team/mentor1.jpg",
     links: {
-      email: "rajesh.kumar@thapar.edu",
+      email: "sgureja_be22@thapar.edu",
       linkedin: "https://linkedin.com/in/rajeshkumar"
     }
   },
   {
     id: 2,
-    name: "Dr. Priya Singh",
-    role: "Academic Coordinator",
+    name: "Manan Malik",
+    role: "Devops and Backend",
     bio: "Dr. Singh oversees the academic integration of virtual labs into the curriculum, ensuring they meet educational standards and objectives.",
     image: "/assets/team/mentor2.jpg",
     links: {
-      email: "priya.singh@thapar.edu",
+      email: "mmlaik@thapar.edu",
       linkedin: "https://linkedin.com/in/priyasingh"
     }
   },
   {
     id: 3,
-    name: "Amit Sharma",
-    role: "Lead Developer",
+    name: "Gunheer Ahuja",
+    role: "UI / UX and Frontend",
     bio: "Amit leads the technical development team, focusing on the architecture and implementation of the platform's core features.",
     image: "/assets/team/developer1.jpg",
     links: {
       github: "https://github.com/amitsharma",
       linkedin: "https://linkedin.com/in/amitsharma",
-      email: "amit.sharma@thapar.edu"
+      email: "gkaur4_be22@thapar.edu"
     }
   },
   {
@@ -237,7 +237,7 @@ export default function TeamPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Thapar Institute of Engineering and Technology. All rights reserved.</p>
+            <p>&copy; 2025 Thapar Institute of Engineering and Technology. All rights reserved.</p>
           </div>
         </div>
       </footer>

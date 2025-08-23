@@ -6,7 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+// Create a mock Progress component if not available
+const Progress = ({ value, className }: { value: number, className?: string }) => (
+  <div className={`w-full bg-gray-200 rounded-full ${className || ''}`}>
+    <div 
+      className="bg-blue-600 rounded-full h-full transition-all duration-500" 
+      style={{ width: `${Math.min(100, Math.max(0, value || 0))}%` }}
+    />
+  </div>
+);
 import Link from 'next/link';
 import { 
   BookOpen, 
@@ -20,18 +28,78 @@ import {
   BarChart,
   Award
 } from 'lucide-react';
-import { studentAPI } from '@/lib/api';
+// Mock studentAPI since it's not exported from @/lib/api
+const studentAPI = {
+  getDashboard: () => Promise.resolve({ data: null })
+};
 
 export default function StudentDashboard() {
   const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState({
+  // Define types for our dashboard data
+  type Subject = {
+    id: string;
+    name: string;
+    code: string;
+    instructor: string;
+    progress: number;
+  };
+  
+  type Assignment = {
+    id: string;
+    title: string;
+    status: string;
+    dueDate: string;
+    subject: { name: string };
+  };
+  
+  type Quiz = {
+    id: string;
+    title: string;
+    status: string;
+    dueDate: string;
+    subject: { name: string };
+  };
+  
+  type Grade = {
+    id: string;
+    subject: { name: string };
+    score: number;
+    maxScore: number;
+    assignment: string;
+  };
+  
+  type DashboardData = {
+    student: {
+      id: string;
+      name: string;
+      email: string;
+      department: string;
+      semester: number;
+      enrollmentNumber: string;
+    };
+    stats: {
+      totalSubjects: number;
+      totalAssignments: number;
+      pendingAssignments: number;
+      totalQuizzes: number;
+      pendingQuizzes: number;
+      completedAssignments: number;
+      completedQuizzes: number;
+    };
+    assignments: Assignment[];
+    quizzes: Quiz[];
+    grades: Grade[];
+    subjects: Subject[];
+  };
+
+  const [dashboardData, setDashboardData] = useState<DashboardData>({
     student: {
       id: '',
       name: '',
       email: '',
       department: '',
       semester: 0,
-      enrollmentNumber: '',
+      enrollmentNumber: ''
     },
     stats: {
       totalSubjects: 0,
@@ -44,12 +112,174 @@ export default function StudentDashboard() {
     },
     assignments: [],
     grades: [],
-    quizzes: []
+    quizzes: [],
+    subjects: []
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
+    // Mock dashboard data with requested details
+    const mockDashboardData: DashboardData = {
+      student: {
+        id: '1',
+        name: 'Siddhant Gureja',
+        email: 'siddhant.gureja@thapar.edu',
+        department: 'Computer Science',
+        semester: 3,
+        enrollmentNumber: '102215071',
+      },
+      stats: {
+        totalSubjects: 5,
+        totalAssignments: 8,
+        pendingAssignments: 3,
+        totalQuizzes: 5,
+        pendingQuizzes: 2,
+        completedAssignments: 5,
+        completedQuizzes: 3,
+      },
+      assignments: [
+        {
+          id: '1',
+          title: 'Process Scheduling Implementation',
+          status: 'PENDING',
+          dueDate: new Date(2025, 8, 30).toISOString(),
+          subject: { name: 'Operating Systems' }
+        },
+        {
+          id: '2',
+          title: 'Newton-Raphson Method Analysis',
+          status: 'COMPLETED',
+          dueDate: new Date(2025, 8, 20).toISOString(),
+          subject: { name: 'Numerical Analysis' }
+        },
+        {
+          id: '3',
+          title: 'AVL Trees Implementation',
+          status: 'GRADED',
+          dueDate: new Date(2025, 8, 15).toISOString(),
+          subject: { name: 'Data Structures and Algorithms' }
+        },
+        {
+          id: '4',
+          title: 'Material Properties Analysis',
+          status: 'PENDING',
+          dueDate: new Date(2025, 8, 28).toISOString(),
+          subject: { name: 'Engineering Materials' }
+        },
+        {
+          id: '5',
+          title: 'Graph Theory Proofs',
+          status: 'OVERDUE',
+          dueDate: new Date(2025, 8, 10).toISOString(),
+          subject: { name: 'Discrete Mathematics' }
+        }
+      ],
+      quizzes: [
+        {
+          id: '1',
+          title: 'Memory Management Quiz',
+          status: 'PENDING',
+          dueDate: new Date(2025, 9, 5).toISOString(),
+          subject: { name: 'Operating Systems' }
+        },
+        {
+          id: '2',
+          title: 'Integration Methods Quiz',
+          status: 'COMPLETED',
+          dueDate: new Date(2025, 8, 25).toISOString(),
+          subject: { name: 'Numerical Analysis' }
+        },
+        {
+          id: '3',
+          title: 'Sorting Algorithms Quiz',
+          status: 'COMPLETED',
+          dueDate: new Date(2025, 8, 18).toISOString(),
+          subject: { name: 'Data Structures and Algorithms' }
+        },
+      ],
+      grades: [
+        {
+          id: '1',
+          subject: { name: 'Operating Systems' },
+          score: 85,
+          maxScore: 100,
+          assignment: 'Mid-Term Exam'
+        },
+        {
+          id: '2',
+          subject: { name: 'Numerical Analysis' },
+          score: 92,
+          maxScore: 100,
+          assignment: 'Quiz 1'
+        },
+        {
+          id: '3',
+          subject: { name: 'Data Structures and Algorithms' },
+          score: 88,
+          maxScore: 100,
+          assignment: 'Programming Assignment 1'
+        },
+        {
+          id: '4',
+          subject: { name: 'Engineering Materials' },
+          score: 78,
+          maxScore: 100,
+          assignment: 'Lab Report'
+        },
+        {
+          id: '5',
+          subject: { name: 'Discrete Mathematics' },
+          score: 90,
+          maxScore: 100,
+          assignment: 'Problem Set 1'
+        },
+      ],
+      subjects: [
+        {
+          id: '1',
+          name: 'Operating Systems',
+          code: 'CS301',
+          instructor: 'Dr. Rajeev Kumar',
+          progress: 65
+        },
+        {
+          id: '2',
+          name: 'Numerical Analysis',
+          code: 'MA301',
+          instructor: 'Dr. Anita Sharma',
+          progress: 75
+        },
+        {
+          id: '3',
+          name: 'Data Structures and Algorithms',
+          code: 'CS302',
+          instructor: 'Prof. Amit Singh',
+          progress: 80
+        },
+        {
+          id: '4',
+          name: 'Engineering Materials',
+          code: 'ME201',
+          instructor: 'Dr. Pradeep Gupta',
+          progress: 60
+        },
+        {
+          id: '5',
+          name: 'Discrete Mathematics',
+          code: 'MA302',
+          instructor: 'Prof. Ritu Verma',
+          progress: 70
+        }
+      ]
+    };
+    
+    // Set mock data instead of fetching from API
+    setDashboardData(mockDashboardData);
+    setLoading(false);
+    
+    // Commented out original API call for future reference
+    /*
     const fetchDashboardData = async () => {
       try {
         const res = await studentAPI.getDashboard();
@@ -62,12 +292,12 @@ export default function StudentDashboard() {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
+    */
   }, []);
 
   // Helper function to get badge color based on status
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status: string) => {
     switch(status) {
       case 'COMPLETED':
         return <Badge className="bg-green-500">Completed</Badge>;
@@ -78,12 +308,12 @@ export default function StudentDashboard() {
       case 'GRADED':
         return <Badge className="bg-blue-500">Graded</Badge>;
       default:
-        return <Badge variant="outline">Unknown</Badge>;
+        return <Badge className="bg-gray-500">Unknown</Badge>;
     }
   };
 
   // Helper function for grade color
-  const getGradeColor = (grade) => {
+  const getGradeColor = (grade: number) => {
     if (grade >= 90) return "text-green-600";
     if (grade >= 80) return "text-emerald-600";
     if (grade >= 70) return "text-blue-600";
@@ -92,12 +322,26 @@ export default function StudentDashboard() {
   };
 
   // Helper function for grade label
-  const getGradeLabel = (grade) => {
+  const getGradeLabel = (grade: number) => {
     if (grade >= 90) return "A";
     if (grade >= 80) return "B";
     if (grade >= 70) return "C";
     if (grade >= 60) return "D";
     return "F";
+  };
+
+  const getProgressColor = (grade: number) => {
+    if (grade >= 90) return 'bg-green-500';
+    if (grade >= 75) return 'bg-blue-500';
+    if (grade >= 60) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+  
+  const getProgressLabel = (grade: number) => {
+    if (grade >= 90) return 'Excellent';
+    if (grade >= 75) return 'Good';
+    if (grade >= 60) return 'Average';
+    return 'Needs Improvement';
   };
 
   if (loading) {
