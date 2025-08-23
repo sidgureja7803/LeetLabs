@@ -266,4 +266,38 @@ export const filesAPI = {
   deleteFile: (fileKey: string) => api.delete(`/files/${fileKey}`),
 };
 
+export const contentManagementAPI = {
+  getContents: (params: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    visibility?: string;
+    subject?: string;
+    search?: string;
+  }) => api.get('/content-management/contents', { params }),
+  
+  getContentById: (contentId: string) => api.get(`/content-management/contents/${contentId}`),
+  
+  createContent: (data: FormData) => api.post('/content-management/contents', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  
+  updateContent: (contentId: string, data: FormData) => api.put(`/content-management/contents/${contentId}`, data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  
+  deleteContent: (contentId: string) => api.delete(`/content-management/contents/${contentId}`),
+  
+  getSubjects: () => api.get('/content-management/subjects'),
+  
+  likeContent: (contentId: string) => api.post(`/content-management/contents/${contentId}/like`),
+  
+  addComment: (contentId: string, data: { text: string }) => 
+    api.post(`/content-management/contents/${contentId}/comments`, data),
+    
+  recordDownload: (contentId: string) => api.post(`/content-management/contents/${contentId}/download`),
+  
+  getContentStats: (params?: { subject?: string }) => api.get('/content-management/stats', { params }),
+};
+
 export default api; 

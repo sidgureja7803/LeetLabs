@@ -118,6 +118,13 @@ model User {
   notifications Notification[]
   dsaSolutions DSASolution[]
 
+  // Content Management relations
+  contents Content[] 
+  contentViews ContentView[]
+  contentLikes ContentLike[]
+  contentComments ContentComment[]
+  contentDownloads ContentDownload[]
+
   teacherRole                TeacherRole? // For users with the TEACHER role
 
   // Admin audit logs
@@ -148,6 +155,7 @@ model Subject {
   assignments  Assignment[]
   quizzes      Quiz[]
   announcements Announcement[]
+  contents     Content[]
 
   @@map("subjects")
 }
@@ -520,4 +528,130 @@ model DSASolution {
   user      User       @relation(fields: [userId], references: [id])
 
   @@map("dsa_solutions")
+}
+
+enum ContentType {
+  DOCUMENT
+  VIDEO
+  LINK
+  MODULE
+}
+
+enum ContentVisibility {
+  PUBLIC
+  ENROLLED
+  PRIVATE
+}
+
+model Content {
+  id          String           @id @default(cuid())
+  title       String
+  type        ContentType
+  description String?
+  filePath    String?
+  url         String?
+  format      String?
+  fileSize    String?
+  duration    String?
+  tags        String[]
+  visibility  ContentVisibility @default(ENROLLED)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  userId      String
+  user        User             @relation(fields: [userId], references: [id])
+  subjectId   String
+  subject     Subject          @relation(fields: [subjectId], references: [id])
+  
+  // Related content items for modules
+  contentItems ContentItem[]
+  
+  // Engagement metrics
+  views      ContentView[]
+  downloads  ContentDownload[]
+  likes      ContentLike[]
+  comments   ContentComment[]
+
+  @@map("contents")
+}
+
+model ContentItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  filePath    String?
+  url         String?
+  format      String?
+  fileSize    String?
+  duration    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  contentId   String
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@map("content_items")
+}
+
+model ContentView {
+  id        String   @id @default(cuid())
+  viewedAt  DateTime @default(now())
+
+  // Relations
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([contentId, userId, viewedAt])
+  @@map("content_views")
+}
+
+model ContentDownload {
+  id          String   @id @default(cuid())
+  downloadedAt DateTime @default(now())
+
+  // Relations
+  contentId   String
+  content     Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("content_downloads")
+}
+
+model ContentLike {
+  id        String   @id @default(cuid())
+  likedAt   DateTime @default(now())
+
+  // Relations
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([contentId, userId])
+  @@map("content_likes")
+}
+
+model ContentComment {
+  id        String   @id @default(cuid())
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  parentId  String?
+  parent    ContentComment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies   ContentComment[] @relation("CommentReplies")
+
+  // Relations
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("content_comments")
 } 

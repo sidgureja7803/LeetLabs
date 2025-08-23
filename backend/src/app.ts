@@ -16,6 +16,7 @@ import quizRoutes from './routes/quiz.routes';
 import notificationRoutes from './routes/notification.routes';
 import announcementRoutes from './routes/announcement.routes';
 import chatbotRoutes from './routes/chatbot.routes';
+import contentManagementRoutes from './routes/contentManagement.routes';
 import { CronService } from './services/cron.service';
 
 const app = express();
@@ -72,6 +73,7 @@ app.use('/api/quizzes', quizRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/content-management', contentManagementRoutes);
 
 // Initialize cron jobs
 CronService.initializeJobs();
